@@ -2,3 +2,10 @@ SQLAlchemy
 psycopg[binary]
 alembic
 python-dotenv
+pydantic
+fastAPI
+PyJWT
+pwdlib[argon2]
+python-multipart
+uvicorn
+psycopg2-binary
