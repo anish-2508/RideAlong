@@ -7,7 +7,7 @@ from db.dependencies import get_db
 from services.auth import authenticate_user, create_access_token, get_current_user_from_token
 from models.auth import LoginUser
 
-router = APIRouter()
+router = APIRouter(tags=["auth"])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 

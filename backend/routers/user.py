@@ -6,7 +6,7 @@ from services.user import create_user, edit_user_info, get_all_users, delete_use
 from routers.auth import get_current_active_user, get_current_user_from_token, oauth2_scheme
 from fastapi.security import OAuth2PasswordBearer
 
-router = APIRouter()
+router = APIRouter(tags=["users"])
 
 #------------------
 # get current user
