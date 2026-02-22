@@ -6,13 +6,16 @@ from db.dependencies import get_db
 from routers.auth import get_current_user
 from services.ride import get_all_rides, get_upcoming_rides
 import uuid
-from services.ride import request_ride_participation, decide_participation
-from typing import List
-from services.ride import get_ride_details, leave_ride, cancel_ride
-from db.models import User
+from typing import List, Optional
+from db.models import User, RideStatus
+from services.ride import (request_ride_participation, 
+                            decide_participation, get_ride_details, leave_ride,
+                            cancel_ride, list_rides)
+
 
 
 router = APIRouter(tags=["rides"])
+
 
 #-----------------------------------------------------------
 # create a new ride using the currently authenticated user
@@ -140,3 +143,30 @@ def cancel_ride_route(
     db: Session = Depends(get_db),
 ):
     return cancel_ride(db, ride_id, current_user.userId)
+
+
+
+# ---------------------------------------------------
+# get rides based on specified filters
+# ---------------------------------------------------
+@router.get("/rides")
+def list_rides_route(
+    status: Optional[RideStatus] = None,
+    hosted_by_me: bool = False,
+    participating: bool = False,
+    available: bool = False,
+    skip: int = 0,
+    limit: int = 20,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return list_rides(
+        db=db,
+        requester_id=current_user.userId,
+        status=status,
+        hosted_by_me=hosted_by_me,
+        participating=participating,
+        available=available,
+        skip=skip,
+        limit=limit,
+    )

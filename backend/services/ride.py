@@ -7,6 +7,7 @@ from sqlalchemy import select
 from datetime import datetime, timezone
 from db.models import Ride, RideParticipant, RideStatus, ParticipantStatus
 from sqlalchemy import func
+from typing import Optional
 
 
 #--------------------------
@@ -271,3 +272,73 @@ def cancel_ride(
     db.commit()
 
     return {"message": "Ride cancelled successfully"}
+
+
+# ---------------------------------------------------
+# get rides based on specified filters
+# ---------------------------------------------------
+def list_rides(
+    db: Session,
+    requester_id: str,
+    status: Optional[RideStatus] = None,
+    hosted_by_me: bool = False,
+    participating: bool = False,
+    available: bool = False,
+    skip: int = 0,
+    limit: int = 20,
+):
+    stmt = select(Ride).options(
+        selectinload(Ride.host),
+        selectinload(Ride.participants)
+    )
+
+    # Filter by status
+    if status:
+        stmt = stmt.where(Ride.status == status)
+
+    # Hosted by current user
+    if hosted_by_me:
+        stmt = stmt.where(Ride.hostId == requester_id)
+
+    # Participating rides
+    if participating:
+        stmt = stmt.join(RideParticipant).where(
+            RideParticipant.userId == requester_id,
+            RideParticipant.status == ParticipantStatus.APPROVED
+        )
+
+    rides = db.execute(stmt).scalars().unique().all()
+
+    results = []
+
+    for ride in rides:
+
+        # Available filter (after fetch for capacity logic clarity)
+        if available:
+            if ride.status != RideStatus.UPCOMING:
+                continue
+
+            approved_count = sum(
+                1 for p in ride.participants
+                if p.status == ParticipantStatus.APPROVED
+            )
+
+            if approved_count >= ride.maxParticipants:
+                continue
+
+        results.append({
+            "rideId": ride.rideId,
+            "rideName": ride.rideName,
+            "rideStartTime": ride.rideStartTime,
+            "rideStartPoint": ride.rideStartPoint,
+            "rideEndPoint": ride.rideEndPoint,
+            "status": ride.status.value,
+            "host": ride.host.username,
+            "approvedCount": sum(
+                1 for p in ride.participants
+                if p.status == ParticipantStatus.APPROVED
+            ),
+            "maxParticipants": ride.maxParticipants,
+        })
+
+    return results[skip: skip + limit]
