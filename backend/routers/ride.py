@@ -57,13 +57,13 @@ def show_upcoming_rides(db: Session = Depends(get_db)):
 # join ride(request the host)
 # ----------------------------
 @router.post("/rides/{ride_id}/request")
-def request_participation(
+async def request_participation(
     ride_id: str,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user),
 ):
     try:
-        participation = request_ride_participation(
+        participation = await request_ride_participation(
             db=db,
             user_id=current_user.userId,
             ride_id=ride_id,
@@ -80,7 +80,7 @@ def request_participation(
 # approve ride(done by the host)
 # -------------------------------
 @router.post("/rides/{ride_id}/participants/{user_id}/decision")
-def decide_participant_route(
+async def decide_participant_route(
     ride_id: str,
     user_id: str,
     approve: bool, 
@@ -88,7 +88,7 @@ def decide_participant_route(
     current_user = Depends(get_current_user),
 ):
     try:
-        result = decide_participation(
+        result = await decide_participation(
             db=db,
             host_id=current_user.userId,
             ride_id=ride_id,

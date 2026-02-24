@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from db.models import Ride, RideParticipant, RideStatus, ParticipantStatus
 from sqlalchemy import func
 from typing import Optional
-
+from websocket_manager import manager
 
 #--------------------------
 # create a new ride event
@@ -59,7 +59,7 @@ def get_upcoming_rides(db: Session):
 # ----------------------------
 # join ride(request the host)
 # ----------------------------
-def request_ride_participation( db: Session,user_id: str, ride_id: str):
+async def request_ride_participation( db: Session,user_id: str, ride_id: str):
     stmt = select(Ride).where(Ride.rideId == ride_id)
     ride = db.execute(stmt).scalar_one_or_none()
     if not ride:
@@ -86,13 +86,24 @@ def request_ride_participation( db: Session,user_id: str, ride_id: str):
     db.commit()
     db.refresh(participation)
 
+    from websocket_manager import manager
+
+    await manager.send_to_user(
+        ride.hostId,
+        {
+            "type": "NEW_JOIN_REQUEST",
+            "rideId": ride.rideId,
+            "fromUser": user_id
+        }
+    )
+
     return participation
 
 
 # -------------------------------
 # approve ride(done by the host)
 # -------------------------------
-def decide_participation(
+async def decide_participation(
     db: Session,
     host_id: str,
     ride_id: str,
@@ -138,6 +149,15 @@ def decide_participation(
 
     db.commit()
     db.refresh(participant)
+
+    await manager.send_to_user(
+    participant_user_id,
+    {
+        "type": "PARTICIPATION_DECISION",
+        "rideId": ride_id,
+        "approved": approve
+    }
+    )
 
     return participant
 
