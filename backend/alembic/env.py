@@ -11,8 +11,8 @@ from dotenv import load_dotenv
 # -----------------------------
 # Load environment variables
 # -----------------------------
-BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / ".env")
+# BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv()
 
 # -----------------------------
 # Alembic Config object
