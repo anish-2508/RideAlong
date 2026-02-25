@@ -40,7 +40,7 @@ def get_all_rides(db: Session):
 
     rides = db.query(Ride).options(
         selectinload(Ride.host),
-        selectinload(Ride.participants),
+        selectinload(Ride.participants).selectinload(RideParticipant.user),
     ).all()
     return rides
 
@@ -52,7 +52,7 @@ def get_upcoming_rides(db: Session):
         Ride.status == RideStatus.UPCOMING
     ).options(
         selectinload(Ride.host),
-        selectinload(Ride.participants),
+        selectinload(Ride.participants).selectinload(RideParticipant.user),
     ).all()
     return rides
 

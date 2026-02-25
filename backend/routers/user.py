@@ -17,6 +17,7 @@ async def read_users_me(
     current_user=Depends(get_current_active_user),
 ):
     return {
+        "userId": str(current_user.userId),
         "username": current_user.username,
         "name": current_user.name,
         "bikeName": current_user.bikeName,

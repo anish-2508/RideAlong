@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from models.ride import Ride
+from models.ride import Ride, RideResponse
 from services.ride import create_ride as ride_service_create
 from db.dependencies import get_db
 from routers.auth import get_current_user
 from services.ride import get_all_rides, get_upcoming_rides
 import uuid
 from typing import List, Optional
-from db.models import User, RideStatus
+from db.models import User, RideStatus, RideParticipant, ParticipantStatus
 from services.ride import (request_ride_participation, 
                             decide_participation, get_ride_details, leave_ride,
                             cancel_ride, list_rides)
@@ -15,6 +15,57 @@ from services.ride import (request_ride_participation,
 
 
 router = APIRouter(tags=["rides"])
+
+
+# -------------------------
+# Helper function to serialize rides
+# -------------------------
+def serialize_rides(rides):
+    """Convert database ride objects to RideResponse format"""
+    serialized = []
+    for ride in rides:
+        approved = []
+        pending = []
+        rejected = []
+        
+        for p in ride.participants:
+            participant_data = {
+                "userId": str(p.userId),
+                "username": p.user.username,
+                "status": p.status.value,
+            }
+            
+            if p.status == ParticipantStatus.APPROVED:
+                approved.append(participant_data)
+            elif p.status == ParticipantStatus.PENDING:
+                pending.append(participant_data)
+            elif p.status == ParticipantStatus.REJECTED:
+                rejected.append(participant_data)
+        
+        ride_response = {
+            "rideId": str(ride.rideId),
+            "rideName": ride.rideName,
+            "rideStartTime": ride.rideStartTime,
+            "rideStartPoint": ride.rideStartPoint,
+            "rideEndPoint": ride.rideEndPoint,
+            "rideDuration": ride.rideDuration,
+            "haltDuration": ride.haltDuration,
+            "routeLink": ride.routeLink,
+            "maxParticipants": ride.maxParticipants,
+            "status": ride.status.value,
+            "host": {
+                "userId": str(ride.host.userId),
+                "username": ride.host.username,
+            },
+            "participants": {
+                "approved": approved,
+                "pending": pending,
+                "rejected": rejected,
+            }
+        }
+        serialized.append(ride_response)
+    
+    return serialized
 
 
 #-----------------------------------------------------------
@@ -39,19 +90,19 @@ def create_ride(ride: Ride,db: Session = Depends(get_db),
 # -------------------------
 # Get all rides
 # -------------------------
-@router.get("/rides", response_model=List[Ride])
+@router.get("/rides", response_model=List[RideResponse])
 def show_all_rides(db: Session = Depends(get_db)):
     rides = get_all_rides(db)
-    return rides
+    return serialize_rides(rides)
 
 
 # -------------------------
 # Get UPCOMING rides
 # -------------------------
-@router.get("/upcoming-rides", response_model=List[Ride])
+@router.get("/upcoming-rides", response_model=List[RideResponse])
 def show_upcoming_rides(db: Session = Depends(get_db)):
     rides = get_upcoming_rides(db)
-    return rides
+    return serialize_rides(rides)
 
 # ----------------------------
 # join ride(request the host)
