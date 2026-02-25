@@ -20,7 +20,7 @@ app.add_middleware(
 )
 
 # health check(as this failed on render)
-@app.get("/")
+@app.head("/")
 def health_check():
     return {"status": "ok"}
 
