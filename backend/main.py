@@ -7,8 +7,18 @@ from websocket_manager import manager
 from services.auth import get_user
 from services.auth import decode_token 
 from db.database import get_session_local
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # or ["*"] for testing
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 #------------------------------------
 # this is purely for notifications
 #------------------------------------

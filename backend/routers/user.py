@@ -12,7 +12,7 @@ router = APIRouter(tags=["users"])
 # get current user
 #------------------
 
-@router.get("/users/me/")
+@router.get("/users/me")
 async def read_users_me(
     current_user=Depends(get_current_active_user),
 ):
@@ -25,7 +25,7 @@ async def read_users_me(
 #-------------------
 # edit current user
 #-------------------
-@router.put("/users/me")
+@router.put("/edit-user/me")
 def edit_profile(
     user: EditUser,
     token: str = Depends(oauth2_scheme),
@@ -53,7 +53,7 @@ def edit_profile(
 # delete current user
 #----------------------
 
-@router.delete("/users/me")
+@router.delete("/delete-user/me")
 def delete_account(
     current_user = Depends(get_current_active_user),
     db: Session = Depends(get_db),

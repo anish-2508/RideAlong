@@ -20,7 +20,7 @@ router = APIRouter(tags=["rides"])
 #-----------------------------------------------------------
 # create a new ride using the currently authenticated user
 #-----------------------------------------------------------
-@router.post("/rides")
+@router.post("/create-ride")
 def create_ride(ride: Ride,db: Session = Depends(get_db),
     current_user = Depends(get_current_user)):
         try:
@@ -48,7 +48,7 @@ def show_all_rides(db: Session = Depends(get_db)):
 # -------------------------
 # Get UPCOMING rides
 # -------------------------
-@router.get("/rides/upcoming", response_model=List[Ride])
+@router.get("/upcoming-rides", response_model=List[Ride])
 def show_upcoming_rides(db: Session = Depends(get_db)):
     rides = get_upcoming_rides(db)
     return rides
@@ -108,7 +108,7 @@ async def decide_participant_route(
 # --------------------------------
 # get all details about the ride
 # --------------------------------
-@router.get("/rides/{ride_id}")
+@router.get("/all-rides-details/{ride_id}")
 def read_ride_details(
     ride_id: str,
     db: Session = Depends(get_db),
@@ -149,7 +149,7 @@ def cancel_ride_route(
 # ---------------------------------------------------
 # get rides based on specified filters
 # ---------------------------------------------------
-@router.get("/rides")
+@router.get("/filtered-rides") 
 def list_rides_route(
     status: Optional[RideStatus] = None,
     hosted_by_me: bool = False,
