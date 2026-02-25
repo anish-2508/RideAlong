@@ -19,6 +19,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# health check(as this failed on render)
+@app.get("/")
+def health_check():
+    return {"status": "ok"}
+
 #------------------------------------
 # this is purely for notifications
 #------------------------------------
