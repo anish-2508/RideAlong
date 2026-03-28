@@ -7,7 +7,7 @@ from routers.auth import get_current_user
 from services.ride import get_all_rides, get_upcoming_rides
 import uuid
 from services.ride import request_ride_participation, decide_participation
-from typing import List
+from typing import List, Optional
 from services.ride import get_ride_details, leave_ride, cancel_ride
 from db.models import User
 
